@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aegis Vault — Project Notes & Password Manager</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <!-- Styles -->
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="dark-theme">
+  <!-- APP CONTAINER -->
+  <div id="app" class="app-layout">
+    
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo-box">
+          <svg class="logo-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            <path d="m9 12 2 2 4-4"/>
+          </svg>
+          <div class="logo-text">
+            <span class="brand-title">AEGIS</span>
+            <span class="brand-subtitle">VAULT & NOTES</span>
+          </div>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <button class="nav-item active" data-view="passwords">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <span>Password Vault</span>
+          <span class="badge" id="nav-pwd-count">0</span>
+        </button>
+        <button class="nav-item" data-view="notes">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>
+          <span>Project Notes</span>
+          <span class="badge" id="nav-notes-count">0</span>
+        </button>
+        <button class="nav-item" data-view="generator">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+          <span>Generator</span>
+        </button>
+        <button class="nav-item" data-view="audit">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+          <span>Security Audit</span>
+          <span class="status-dot green" id="audit-dot"></span>
+        </button>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="vault-status-card">
+          <div class="status-indicator">
+            <span class="pulse-dot green" id="status-pulse"></span>
+            <span id="vault-status-text">Vault Unlocked</span>
+          </div>
+          <button class="btn btn-secondary btn-sm btn-block" id="btn-lock-vault">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            Lock Vault
+          </button>
+        </div>
+      </div>
+    </aside>
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+      
+      <!-- TOP HEADER BAR -->
+      <header class="top-bar">
+        <div class="search-box">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="global-search" placeholder="Search passwords, notes, tags or domains... (Ctrl + K)">
+        </div>
+        <div class="top-actions">
+          <button class="btn btn-primary" id="btn-global-add">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            <span id="btn-add-label">New Password</span>
+          </button>
+        </div>
+      </header>
+      <!-- VIEW CONTENT CONTAINER -->
+      <div class="content-body">
+        <!-- VIEW 1: PASSWORDS VAULT -->
+        <section id="view-passwords" class="view-panel active">
+          <div class="view-header">
+            <div>
+              <h2>Password Vault</h2>
+              <p class="subtitle">AES-256 encrypted credentials for your accounts and project infrastructure.</p>
+            </div>
+            <div class="filter-pills" id="pwd-category-filters">
+              <button class="pill active" data-cat="ALL">All</button>
+              <button class="pill" data-cat="Work">Work</button>
+              <button class="pill" data-cat="DevOps">DevOps</button>
+              <button class="pill" data-cat="Database">Database</button>
+              <button class="pill" data-cat="Design">Design</button>
+            </div>
+          </div>
+          <div class="grid-cards" id="passwords-grid">
+            <!-- Rendered dynamically by passwords.js -->
+          </div>
+        </section>
+        <!-- VIEW 2: PROJECT NOTES -->
+        <section id="view-notes" class="view-panel">
+          <div class="view-header">
+            <div>
+              <h2>Project Notes & Architecture Docs</h2>
+              <p class="subtitle">Markdown support, code blocks, and tag-filtered project documentation.</p>
+            </div>
+            <button class="btn btn-secondary" id="btn-new-note">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              New Note
+            </button>
+          </div>
+          <div class="notes-layout">
+            <div class="tags-sidebar" id="notes-tags-list">
+              <h4>Filter by Tags</h4>
+              <div class="tags-cloud" id="tags-cloud-container">
+                <!-- Dynamic tags -->
+              </div>
+            </div>
+            <div class="notes-grid" id="notes-grid">
+              <!-- Rendered dynamically by notes.js -->
+            </div>
+          </div>
+        </section>
+        <!-- VIEW 3: PASSWORD GENERATOR -->
+        <section id="view-generator" class="view-panel">
+          <div class="view-header">
+            <div>
+              <h2>Password Generator</h2>
+              <p class="subtitle">Create cryptographically high-entropy passwords with custom rule parameters.</p>
+            </div>
+          </div>
+          <div class="generator-container glass-card">
+            <div class="gen-output-box">
+              <input type="text" id="gen-result" readonly value="">
+              <button class="btn btn-primary" id="btn-gen-copy">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+              <button class="btn btn-secondary" id="btn-gen-refresh">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+              </button>
+            </div>
+            <div class="strength-meter-bar">
+              <div class="strength-fill" id="gen-strength-fill" style="width: 85%; background: var(--color-green);"></div>
+            </div>
+            <div class="strength-label" id="gen-strength-label">Entropy: High • Strong Password</div>
+            <div class="gen-controls">
+              <div class="control-group">
+                <div class="control-label">
+                  <span>Password Length</span>
+                  <span id="gen-len-val" class="highlight-val">16</span>
+                </div>
+                <input type="range" id="gen-length" min="8" max="64" value="16" class="custom-range">
+              </div>
+              <div class="gen-checkboxes">
+                <label class="checkbox-label">
+                  <input type="checkbox" id="gen-opt-upper" checked>
+                  <span>Uppercase (A-Z)</span>
+                </label>
+                <label class="checkbox-label">
+                  <input type="checkbox" id="gen-opt-lower" checked>
+                  <span>Lowercase (a-z)</span>
+                </label>
+                <label class="checkbox-label">
+                  <input type="checkbox" id="gen-opt-numbers" checked>
+                  <span>Numbers (0-9)</span>
+                </label>
+                <label class="checkbox-label">
+                  <input type="checkbox" id="gen-opt-symbols" checked>
+                  <span>Symbols (!@#$%)</span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </section>
+        <!-- VIEW 4: SECURITY AUDIT -->
+        <section id="view-audit" class="view-panel">
+          <div class="view-header">
+            <div>
+              <h2>Security Audit & Vault Metrics</h2>
+              <p class="subtitle">Automated health inspection of weak, reused, and compromised passwords.</p>
+            </div>
+          </div>
+          <div class="audit-grid">
+            <!-- Score Overview Card -->
+            <div class="glass-card audit-score-card">
+              <div class="gauge-ring" id="audit-score-ring">
+                <span class="score-number" id="audit-score-num">88</span>
+                <span class="score-unit">/100</span>
+              </div>
+              <div class="score-text">
+                <h3 id="audit-score-title">Vault Security Status: Good</h3>
+                <p id="audit-score-desc">Your passwords adhere to key encryption policies, with minor recommendations below.</p>
+              </div>
+            </div>
+            <!-- Metrics Counters -->
+            <div class="metrics-grid">
+              <div class="glass-card metric-card">
+                <span class="metric-val" id="metric-total-pwd">0</span>
+                <span class="metric-title">Total Credentials</span>
+              </div>
+              <div class="glass-card metric-card">
+                <span class="metric-val green" id="metric-strong-pwd">0</span>
+                <span class="metric-title">Strong Passwords</span>
+              </div>
+              <div class="glass-card metric-card">
+                <span class="metric-val red" id="metric-weak-pwd">0</span>
+                <span class="metric-title">Weak Passwords</span>
+              </div>
+              <div class="glass-card metric-card">
+                <span class="metric-val amber" id="metric-reused-pwd">0</span>
+                <span class="metric-title">Reused Passwords</span>
+              </div>
+            </div>
+          </div>
+          <!-- Recommendations & Audit Log -->
+          <div class="audit-details-grid">
+            <div class="glass-card">
+              <h3>Security Recommendations</h3>
+              <ul class="recommendations-list" id="audit-recommendations">
+                <!-- Rendered dynamically -->
+              </ul>
+            </div>
+            <div class="glass-card">
+              <h3>Recent Security Audit Logs</h3>
+              <div class="audit-logs-timeline" id="audit-logs-list">
+                <!-- Rendered dynamically -->
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+  <!-- LOCK OVERLAY MODAL -->
+  <div id="lock-modal" class="modal-overlay active">
+    <div class="modal-card glass-modal lock-card">
+      <div class="lock-shield-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#00F2FE" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      </div>
+      <h2 id="lock-modal-title">Unlock Vault</h2>
+      <p id="lock-modal-subtitle">Enter your master passphrase to decrypt stored credentials and project notes.</p>
+      
+      <form id="form-unlock">
+        <div class="form-group">
+          <input type="password" id="input-master-pass" placeholder="Enter Master Passphrase..." required autocomplete="current-password">
+        </div>
+        <div class="default-pass-hint">
+          <span>Default Passphrase: <code>admin123</code></span>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block btn-lg" id="btn-unlock">Unlock Vault</button>
+      </form>
+    </div>
+  </div>
+  <!-- PASSWORD EDIT/CREATE MODAL -->
+  <div id="pwd-modal" class="modal-overlay">
+    <div class="modal-card glass-modal">
+      <div class="modal-header">
+        <h3 id="pwd-modal-title">New Password Entry</h3>
+        <button class="close-btn" data-close="pwd-modal">&times;</button>
+      </div>
+      <form id="form-pwd">
+        <input type="hidden" id="pwd-id">
+        <div class="form-group">
+          <label>Service / App Title *</label>
+          <input type="text" id="pwd-title" required placeholder="e.g. GitHub Organization">
+        </div>
+        <div class="form-group">
+          <label>Username / Email</label>
+          <input type="text" id="pwd-username" placeholder="e.g. user@company.com">
+        </div>
+        <div class="form-group">
+          <label>Password *</label>
+          <div class="input-with-action">
+            <input type="password" id="pwd-password" required placeholder="Enter password...">
+            <button type="button" class="btn btn-secondary btn-icon" id="pwd-toggle-vis">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+            <button type="button" class="btn btn-secondary btn-icon" id="pwd-gen-fill" title="Generate Random Password">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Category</label>
+          <select id="pwd-category">
+            <option value="Work">Work</option>
+            <option value="DevOps">DevOps</option>
+            <option value="Database">Database</option>
+            <option value="Design">Design</option>
+            <option value="Personal">Personal</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>URL / Web Address</label>
+          <input type="url" id="pwd-url" placeholder="https://example.com">
+        </div>
+        <div class="form-group">
+          <label>Notes & Tokens</label>
+          <textarea id="pwd-notes" rows="3" placeholder="Additional secret notes..."></textarea>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-close="pwd-modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Entry</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  <!-- NOTE EDIT/CREATE MODAL -->
+  <div id="note-modal" class="modal-overlay">
+    <div class="modal-card glass-modal modal-lg">
+      <div class="modal-header">
+        <h3 id="note-modal-title">Create Project Note</h3>
+        <button class="close-btn" data-close="note-modal">&times;</button>
+      </div>
+      <form id="form-note">
+        <input type="hidden" id="note-id">
+        <div class="form-group">
+          <label>Note Title *</label>
+          <input type="text" id="note-title" required placeholder="e.g. Express API Architecture Notes">
+        </div>
+        <div class="form-row">
+          <div class="form-group col-6">
+            <label>Category</label>
+            <input type="text" id="note-category" placeholder="e.g. Backend, Design, Ops">
+          </div>
+          <div class="form-group col-6">
+            <label>Tags (comma separated)</label>
+            <input type="text" id="note-tags" placeholder="nodejs, security, express">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Content (Markdown supported: # Headings, ```code```, - lists)</label>
+          <textarea id="note-content" rows="10" placeholder="Type project markdown notes here..."></textarea>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-close="note-modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Note</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  <!-- VIEW NOTE DETAIL MODAL -->
+  <div id="note-detail-modal" class="modal-overlay">
+    <div class="modal-card glass-modal modal-lg">
+      <div class="modal-header">
+        <h3 id="detail-note-title">Note Detail</h3>
+        <button class="close-btn" data-close="note-detail-modal">&times;</button>
+      </div>
+      <div class="note-detail-body">
+        <div class="note-meta-bar">
+          <span class="badge" id="detail-note-cat">General</span>
+          <span class="note-date" id="detail-note-date">Updated 2 days ago</span>
+          <div class="detail-tags" id="detail-note-tags"></div>
+        </div>
+        <div class="markdown-preview" id="detail-note-content"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="btn-edit-current-note">Edit Note</button>
+        <button class="btn btn-primary" data-close="note-detail-modal">Close</button>
+      </div>
+    </div>
+  </div>
+  <!-- TOAST NOTIFICATION CONTAINER -->
+  <div id="toast-container"></div>
+  <!-- Main JavaScript App Entry -->
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
